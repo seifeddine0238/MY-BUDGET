@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ميزانيتي الذكية</title>
+    <title>تطبيق ميزانيتي الذكية</title>
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#2ecc71">
     
@@ -67,6 +67,7 @@
             display: flex;
             flex-direction: column;
             gap: 8px;
+            margin-bottom: 20px;
         }
         
         .btn-expense {
@@ -82,6 +83,43 @@
         }
         
         .btn-expense:active { transform: scale(0.98); }
+
+        /* تنسيق خانة المصروف الخارجي الجديد */
+        .custom-expense-box {
+            background: #f9f9f9;
+            border: 2px dashed #bdc3c7;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 15px;
+        }
+        
+        .input-row {
+            display: flex;
+            gap: 8px;
+            margin-top: 8px;
+        }
+        
+        .input-amount {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid #bdc3c7;
+            border-radius: 6px;
+            font-size: 1em;
+            text-align: center;
+        }
+        
+        .btn-add-custom {
+            background: #27ae60;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 6px;
+            font-size: 0.95em;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        
+        .btn-add-custom:active { transform: scale(0.95); }
         
         .btn-reset {
             background: #e74c3c;
@@ -89,7 +127,7 @@
             border: none;
             padding: 8px 15px;
             border-radius: 5px;
-            margin-top: 20px;
+            margin-top: 10px;
             cursor: pointer;
             font-size: 0.85em;
         }
@@ -113,7 +151,15 @@
         💡 يتم تجديد الـ 483 دج تلقائياً كل صباح، وتتجدد الميزانية الكبرى تلقائياً كل يوم 18.
     </div>
 
-    <div class="expense-title">👇 سجل مصروفك اليوم فوراً:</div>
+    <div class="custom-expense-box">
+        <div class="expense-title" style="margin: 0;">🚨 مصروف خارجي / اضطراري جديد:</div>
+        <div class="input-row">
+            <input type="number" id="custom-amount" class="input-amount" placeholder="أدخل المبلغ هنا (دج)" min="1">
+            <button class="btn-add-custom" onclick="deductCustomExpense()">خصم الآن</button>
+        </div>
+    </div>
+
+    <div class="expense-title">👇 أو سجل المصاريف اليومية الثابتة:</div>
     
     <div class="btn-group">
         <button class="btn-expense" onclick="deductExpense(110)">
@@ -122,95 +168,5 @@
         </button>
         
         <button class="btn-expense" onclick="deductExpense(180)">
-            <span>☕ قهوة + ماء + عصير</span>
-            <strong>- 180 دج</strong>
-        </button>
-        
-        <button class="btn-expense" onclick="deductExpense(190)">
-            <span>🍽️ وجبة العشاء</span>
-            <strong>- 190 دج</strong>
-        </button>
-    </div>
-
-    <button class="btn-reset" onclick="manualReset()">إعادة تعيين يدوي اضطراري</button>
-</div>
-
-<script>
-    const TOTAL_START = 14500;
-    const DAILY_START = 483;
-    const START_DAY = 18;
-
-    let totalBudget = localStorage.getItem('total_budget') ? parseInt(localStorage.getItem('total_budget')) : TOTAL_START;
-    let dailyBudget = localStorage.getItem('daily_budget') ? parseInt(localStorage.getItem('daily_budget')) : DAILY_START;
-    let lastResetMonth = localStorage.getItem('last_reset_month') ? parseInt(localStorage.getItem('last_reset_month')) : -1;
-    let lastActiveDate = localStorage.getItem('last_active_date') ? new Date(localStorage.getItem('last_active_date')) : new Date();
-
-    if(!localStorage.getItem('last_active_date')) localStorage.setItem('last_active_date', lastActiveDate);
-
-    function checkDateUpdates() {
-        let now = new Date();
-        let currentMonth = now.getMonth();
-        let currentDay = now.getDate();
-
-        if (currentDay >= START_DAY && lastResetMonth !== currentMonth) {
-            totalBudget = TOTAL_START;
-            dailyBudget = DAILY_START;
-            lastResetMonth = currentMonth;
-            localStorage.setItem('last_reset_month', lastResetMonth);
-        }
-        if (lastResetMonth === -1) {
-            lastResetMonth = (currentDay >= START_DAY) ? currentMonth : (currentMonth - 1 + 12) % 12;
-            localStorage.setItem('last_reset_month', lastResetMonth);
-        }
-
-        if (now.getDate() !== lastActiveDate.getDate() || now.getMonth() !== lastActiveDate.getMonth()) {
-            dailyBudget = DAILY_START;
-            lastActiveDate = now;
-            localStorage.setItem('last_active_date', lastActiveDate.toISOString());
-        }
-
-        document.getElementById('total-budget').innerText = totalBudget;
-        document.getElementById('daily-budget').innerText = dailyBudget;
-        
-        localStorage.setItem('total_budget', totalBudget);
-        localStorage.setItem('daily_budget', dailyBudget);
-    }
-
-    function deductExpense(amount) {
-        checkDateUpdates();
-        if (dailyBudget >= amount && totalBudget >= amount) {
-            dailyBudget -= amount;
-            totalBudget -= amount;
-            localStorage.setItem('total_budget', totalBudget);
-            localStorage.setItem('daily_budget', dailyBudget);
-            document.getElementById('total-budget').innerText = totalBudget;
-            document.getElementById('daily-budget').innerText = dailyBudget;
-        } else {
-            alert("⚠️ الميزانية المتبقية لا تكفي!");
-        }
-    }
-
-    function manualReset() {
-        if (confirm("هل تريد تصفير الحساب والبدء من جديد بـ 14,500 دج فوراً؟")) {
-            localStorage.clear();
-            totalBudget = TOTAL_START;
-            dailyBudget = DAILY_START;
-            lastResetMonth = new Date().getMonth();
-            lastActiveDate = new Date();
-            localStorage.setItem('last_reset_month', lastResetMonth);
-            localStorage.setItem('last_active_date', lastActiveDate.toISOString());
-            checkDateUpdates();
-        }
-    }
-
-    checkDateUpdates();
-
-    // كود تشغيل وتفعيل حفظ البيانات بدون إنترنت في الهاتف
-    if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.register('sw.js')
-        .then(() => console.log("تطبيق الميزانية جاهز للعمل بدون إنترنت!"));
-    }
-</script>
-
-</body>
-</html>
+            <span>☕ قهوة + ماء + ع
+                
