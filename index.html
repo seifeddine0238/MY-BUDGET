@@ -125,7 +125,6 @@
         }
         .btn-expense:active, .btn-action:active { transform: scale(0.97); }
         
-        /* تنسيق قائمة المشتريات الجديدة */
         .history-box {
             background: #fff;
             border: 1px solid #e2e8f0;
@@ -193,7 +192,7 @@
             <span>🧃 كانديا شوكو</span>
             <strong>60 دج</strong>
         </button>
-        <button class="btn-expense" onclick="deductExpense(50, 'کسرة')">
+        <button class="btn-expense" onclick="deductExpense(50, 'كسرة')">
             <span>🥖 كسرة</span>
             <strong>50 دج</strong>
         </button>
@@ -243,7 +242,6 @@
     let storedDate = localStorage.getItem('last_active_date');
     let lastActiveDate = storedDate ? new Date(storedDate) : new Date();
 
-    // استعادة قائمة المشتريات من الذاكرة
     let purchaseHistory = localStorage.getItem('purchase_history') ? JSON.parse(localStorage.getItem('purchase_history')) : [];
 
     if(!localStorage.getItem('last_active_date')) {
@@ -283,7 +281,6 @@
             localStorage.setItem('last_reset_month', lastResetMonth);
         }
 
-        // عند تغير اليوم، نقوم بتصفير القائمة تلقائياً لبدء يوم جديد
         if (now.getDate() !== lastActiveDate.getDate() || now.getMonth() !== lastActiveDate.getMonth()) {
             if(baseMonthlyBudget > 0) {
                 dailyBudget = Math.floor(baseMonthlyBudget / 30);
@@ -298,7 +295,6 @@
         renderHistory();
     }
 
-    // دالة إضافة منتج إلى القائمة المرئية والذاكرة
     function addToHistory(label, amount) {
         let now = new Date();
         let timeStr = now.getHours().toString().padStart(2, '0') + ":" + now.getMinutes().toString().padStart(2, '0');
@@ -308,7 +304,6 @@
         renderHistory();
     }
 
-    // دالة بناء وعرض عناصر القائمة
     function renderHistory() {
         let container = document.getElementById('history-container');
         container.innerHTML = '';
@@ -341,7 +336,7 @@
         if (dailyBudget >= amount && totalBudget >= amount) {
             dailyBudget -= amount;
             totalBudget -= amount;
-            addToHistory(label, amount); // تسجيل في القائمة
+            addToHistory(label, amount);
             updateDisplay();
         } else {
             alert("⚠️ الميزانية المتبقية لا تكفي لـ " + label);
@@ -358,10 +353,19 @@
         deductExpense(price, 'وجبة العشاء');
     }
 
+    // الدالة المصححة والمضمونة للخصم اليدوي الحر وإضافته للقائمة فوراً
     function deductCustomField() {
         checkDateUpdates();
-        let nameField = document.getElementById('custom-name').value.trim();
-        let priceField = parseInt(document.getElementById('custom-price').value);
+        if(baseMonthlyBudget <= 0) {
+            alert("⚠️ يرجى تحديد الميزانية الشهرية أولاً في الخانة المخصصة!");
+            return;
+        }
+        
+        let nameInput = document.getElementById('custom-name');
+        let priceInput = document.getElementById('custom-price');
+        
+        let nameField = nameInput.value.trim();
+        let priceField = parseInt(priceInput.value);
 
         if (!nameField) { nameField = "مصروف مخصص"; }
         if (isNaN(priceField) || priceField <= 0) {
@@ -372,10 +376,15 @@
         if (dailyBudget >= priceField && totalBudget >= priceField) {
             dailyBudget -= priceField;
             totalBudget -= priceField;
-            addToHistory(nameField, priceField); // تسجيل المصروف اليدوي الحر
+            
+            // إضافة المنتج يدوياً إلى السجل والقائمة
+            addToHistory(nameField, priceField);
+            
             updateDisplay();
-            document.getElementById('custom-name').value = '';
-            document.getElementById('custom-price').value = '';
+            
+            // تفريغ الخانات بعد النجاح
+            nameInput.value = '';
+            priceInput.value = '';
         } else {
             alert("⚠️ الميزانية لا تكفي لخصم: " + nameField);
         }
