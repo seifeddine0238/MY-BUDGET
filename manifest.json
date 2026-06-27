@@ -1,0 +1,9 @@
+{
+  "name": "تطبيق ميزانيتي الشخصية",
+  "short_name": "ميزانيتي",
+  "start_url": "index.html",
+  "display": "standalone",
+  "background_color": "#f4f7f6",
+  "theme_color": "#2ecc71",
+  "orientation": "portrait"
+}
